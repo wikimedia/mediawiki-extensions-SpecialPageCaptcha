@@ -9,16 +9,16 @@
  */
 namespace MediaWiki\Extension\SpecialPageCaptcha;
 
-use ExtensionRegistry;
-use Html;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\SpecialPage\Hook\SpecialPageBeforeExecuteHook;
 
 class Hooks implements SpecialPageBeforeExecuteHook {
 	/**
 	 * Main extension logic/hook handler.
 	 *
-	 * @param SpecialPage $specialPage
+	 * @param MediaWiki\SpecialPage\SpecialPage $specialPage
 	 * @param string $subPage
 	 * @return void|bool Boolean false if our code here was triggered, i.e. user is an anon subject to restrictions,
 	 *    bool true if the cookie is set and the user has passed a CAPTCHA within the past half an hour; void if they
@@ -83,8 +83,8 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 	/**
 	 * If the user is subject to CAPTCHAs, get a CAPTCHA form for them.
 	 *
-	 * @param User $user
-	 * @param OutputPage $out
+	 * @param MediaWiki\User\User $user
+	 * @param MediaWiki\Output\OutputPage $out
 	 * @return string HTML
 	 */
 	private function getCAPTCHAForm( $user, $out ) {

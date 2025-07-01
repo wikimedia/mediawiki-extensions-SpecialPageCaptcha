@@ -1,6 +1,6 @@
 {
 	"name": "SpecialPageCaptcha",
-	"version": "0.1",
+	"version": "0.2",
 	"author": [
 		"Jack Phoenix"
 	],
@@ -9,7 +9,7 @@
 	"descriptionmsg": "specialpagecaptcha-desc",
 	"type": "antispam",
 	"requires": {
-		"MediaWiki": ">= 1.39.0",
+		"MediaWiki": ">= 1.43.0",
 		"extensions": {
 			"ConfirmEdit": "*"
 		}
