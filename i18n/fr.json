@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jack Phoenix"
+		]
+	},
+	"fancycaptcha-specialpage": "Pour voir cette page spéciale, nous vous demandons de bien vouloir entrer les mots qui apparaissent dans la boîte ci-dessous ([[Special:Captcha/help|plus d’informations]]) :",
+	"questycaptcha-specialpage": "Pour voir cette page spéciale, nous vous demandons de bien vouloir répondre à la question qui apparaît ci-dessous ([[Special:Captcha/help|plus d’informations]]) :"
+}

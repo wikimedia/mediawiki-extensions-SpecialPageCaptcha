@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"specialpagecaptcha-desc": "Forces anonymous users to complete a CAPTCHA challenge in order to access special pages",
+	"fancycaptcha-specialpage": "To view this special page, please enter the words that appear below in the box ([[Special:Captcha/help|more info]]):",
+	"questycaptcha-specialpage": "To view this special page, please answer the question that appears below ([[Special:Captcha/help|more info]]):"
+}

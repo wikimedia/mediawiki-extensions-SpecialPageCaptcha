@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"specialpagecaptcha-desc": "Extension description shown on [[Special:Version]]",
+	"fancycaptcha-specialpage": "Shown on all special pages to anonymous users when:\n# the [[mw:Extension:ConfirmEdit|ConfirmEdit extension]] is installed,\n# the CAPTCHA type is FancyCaptcha (distorted words)\n# the current user is subject to CAPTCHAs and\n # the user has NOT passed a CAPTCHA recently (recently means whatever the system administrators have specified, 30 minutes by default)",
+	"questycaptcha-specialpage": "Shown on all special pages to anonymous users when:\n# the [[mw:Extension:ConfirmEdit|ConfirmEdit extension]] is installed,\n# the CAPTCHA type is QuestyCaptcha (a randomly chosen question from a pre-configured set of questions and answers)\n# the current user is subject to CAPTCHAs and\n # the user has NOT passed a CAPTCHA recently (recently means whatever the system administrators have specified, 30 minutes by default)"
+}

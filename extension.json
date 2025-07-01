@@ -1,0 +1,44 @@
+{
+	"name": "SpecialPageCaptcha",
+	"version": "0.1",
+	"author": [
+		"Jack Phoenix"
+	],
+	"license-name": "PD",
+	"url": "https://www.mediawiki.org/wiki/Extension:SpecialPageCaptcha",
+	"descriptionmsg": "specialpagecaptcha-desc",
+	"type": "antispam",
+	"requires": {
+		"MediaWiki": ">= 1.39.0",
+		"extensions": {
+			"ConfirmEdit": "*"
+		}
+	},
+	"config": {
+		"SpecialPageCaptchaCookieTTL": {
+			"description": "The time to live (TTL) in seconds for the cookie set by the extension, which allows the user to bypass the CAPTCHA. The default is 1800 (seconds), i.e. 60 seconds * 30 minutes.",
+			"value": 1800
+		},
+		"SpecialPageCaptchaWhitelist": {
+			"description": "A whitelist of special pages which will never show the CAPTCHA. Special:Captcha is provided by the ConfirmEdit extension and it's the help page about CAPTCHAs, whereas the log in/log out pages are provided by MW core and their inclusion here oughta be self-explanatory.",
+			"value": [ "Captcha", "Search", "Userlogin", "Userlogout" ]
+		}
+	},
+	"MessagesDirs": {
+		"SpecialPageCaptcha": [
+			"i18n"
+		]
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\SpecialPageCaptcha\\": "includes/"
+	},
+	"Hooks": {
+		"SpecialPageBeforeExecute": "main"
+	},
+	"HookHandlers": {
+		"main": {
+			"class": "MediaWiki\\Extension\\SpecialPageCaptcha\\Hooks"
+		}
+	},
+	"manifest_version": 2
+}

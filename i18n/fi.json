@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jack Phoenix"
+		]
+	},
+	"fancycaptcha-specialpage": "Tarkastellaksesi tätä toimintosivua, kirjoita alla olevassa laatikossa näkyvät sanat ([[Special:Captcha/help|lisätietoja]]):",
+	"questycaptcha-specialpage": "Tarkastellaksesi tätä toimintosivua, vastaa alla näkyvään kysymykseen ([[Special:Captcha/help|lisätietoja]]):"
+}
