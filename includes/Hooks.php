@@ -9,16 +9,20 @@
  */
 namespace MediaWiki\Extension\SpecialPageCaptcha;
 
+use MediaWiki\Extension\ConfirmEdit\Hooks as ConfirmEditHooks;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Output\OutputPage;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\SpecialPage\Hook\SpecialPageBeforeExecuteHook;
+use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\User\User;
 
 class Hooks implements SpecialPageBeforeExecuteHook {
 	/**
 	 * Main extension logic/hook handler.
 	 *
-	 * @param MediaWiki\SpecialPage\SpecialPage $specialPage
+	 * @param SpecialPage $specialPage
 	 * @param string $subPage
 	 * @return void|bool Boolean false if our code here was triggered, i.e. user is an anon subject to restrictions,
 	 *    bool true if the cookie is set and the user has passed a CAPTCHA within the past half an hour; void if they
@@ -48,7 +52,7 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 				return true;
 			}
 
-			$captcha = \MediaWiki\Extension\ConfirmEdit\Hooks::getInstance();
+			$captcha = ConfirmEditHooks::getInstance();
 			$pass = $captcha->passCaptchaFromRequest( $request, $user );
 			$canSkip = $captcha->canSkipCaptcha( $user, $services->getMainConfig() );
 			$wasPosted = $request->wasPosted();
@@ -61,7 +65,8 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 				) &&*/
 				( !$canSkip && !$pass ) || !$wasPosted
 			) {
-				$out->setStatusCode( 429 ); // Too Many Requests
+				// Too Many Requests
+				$out->setStatusCode( 429 );
 				$out->setPageTitle( $specialPage->msg( 'error' )->escaped() );
 				if ( $wasPosted && !$pass ) {
 					// Show an error box when the answer to the CAPTCHA was incorrect
@@ -72,10 +77,14 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 				$out->addHTML( Html::submitButton( $specialPage->msg( 'htmlform-submit' )->text() ) );
 				$out->addHTML( '</form>' );
 				return false;
-			} elseif ( ( $wasPosted && $pass || $canSkip ) ) {
-				// Set a cookie for the specified time (half an hour by default; can be configured by sysadmins using the
-				// config variable to be shorter or longer)
-				$request->response()->setCookie( 'SpecialPageCaptchaPass', '1', time() + $config->get( 'SpecialPageCaptchaCookieTTL' ) );
+			} elseif ( ( $wasPosted && $pass ) || $canSkip ) {
+				// Set a cookie for the specified time (half an hour by default; can be configured by sysadmins
+				// using theconfig variable to be shorter or longer)
+				$request->response()->setCookie(
+					'SpecialPageCaptchaPass',
+					'1',
+					time() + $config->get( 'SpecialPageCaptchaCookieTTL' )
+				);
 			}
 		}
 	}
@@ -83,13 +92,13 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 	/**
 	 * If the user is subject to CAPTCHAs, get a CAPTCHA form for them.
 	 *
-	 * @param MediaWiki\User\User $user
-	 * @param MediaWiki\Output\OutputPage $out
+	 * @param User $user
+	 * @param OutputPage $out
 	 * @return string HTML
 	 */
 	private function getCAPTCHAForm( $user, $out ) {
 		$captchaForm = '';
-		$captcha = \MediaWiki\Extension\ConfirmEdit\Hooks::getInstance();
+		$captcha = ConfirmEditHooks::getInstance();
 
 		if (
 			// @todo I hate this conditional, but ConfirmEdit's shouldCheck() -- which,
