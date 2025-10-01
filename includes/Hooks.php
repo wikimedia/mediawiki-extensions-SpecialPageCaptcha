@@ -107,13 +107,13 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 			// It didn't work out for the CreateAPage extension (from which this code was
 			// copied and ever so slightly tweaked), it definitely doesn't work for us here.
 			// Thus we partially reimplement shouldCheck() here, sadly...
-			/**
+			/*
 			(
 				$captcha->triggersCaptcha( 'edit' ) ||
 				$captcha->triggersCaptcha( 'create' ) ||
 				$captcha->triggersCaptcha( 'addurl' )
 			) &&
-			**/
+			*/
 			!$captcha->canSkipCaptcha( $user, MediaWikiServices::getInstance()->getMainConfig() )
 		) {
 			$formInformation = $captcha->getFormInformation();
