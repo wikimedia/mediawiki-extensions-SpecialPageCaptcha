@@ -22,70 +22,73 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 	/**
 	 * Main extension logic/hook handler.
 	 *
-	 * @param SpecialPage $specialPage
+	 * @param SpecialPage $special
 	 * @param string $subPage
-	 * @return void|bool Boolean false if our code here was triggered, i.e. user is an anon subject to restrictions,
-	 *    bool true if the cookie is set and the user has passed a CAPTCHA within the past half an hour; void if they
+	 *
+	 * @return void|bool Boolean false if our code here was triggered, i.e. user is an anon subject to restrictions.
+	 *    void if the cookie is set and the user has passed a CAPTCHA within the past half an hour; or if they
 	 *    passed the CAPTCHA just now and the cookie was set
 	 */
-	public function onSpecialPageBeforeExecute( $specialPage, $subPage ) {
+	public function onSpecialPageBeforeExecute( $special, $subPage ) {
 		// If the ConfirmEdit (CAPTCHA) extension isn't installed, bail out.
 		if ( !ExtensionRegistry::getInstance()->isLoaded( 'ConfirmEdit' ) ) {
 			return;
 		}
 
-		$config = $specialPage->getConfig();
-		$out = $specialPage->getOutput();
-		$request = $specialPage->getRequest();
-		$user = $specialPage->getUser();
+		$user = $special->getUser();
+		if ( $user->isRegistered() ) {
+			return;
+		}
 
+		$config = $special->getConfig();
+		$request = $special->getRequest();
 		$services = MediaWikiServices::getInstance();
 
 		// "Fun" fact: apparently you can't inject SpecialPageFactory via DI here (???) *and*
 		// $specialPage->getSpecialPageFactory() is protected :^)
-		$canonicalName = $services->getSpecialPageFactory()->resolveAlias( $specialPage->getName() )[0];
+		$canonicalName = $services->getSpecialPageFactory()->resolveAlias( $special->getName() )[0];
 		$isWhitelisted = in_array( $canonicalName, $config->get( 'SpecialPageCaptchaWhitelist' ) );
 
-		if ( !$user->isRegistered() && !$isWhitelisted ) {
-			if ( $request->getCookie( 'SpecialPageCaptchaPass' ) === '1' ) {
-				// You shall pass.
-				return true;
-			}
+		if ( $isWhitelisted || $request->getCookie( 'SpecialPageCaptchaPass' ) === '1' ) {
+			// You shall pass.
+			return;
+		}
 
-			$captcha = ConfirmEditHooks::getInstance();
-			$pass = $captcha->passCaptchaFromRequest( $request, $user );
-			$canSkip = $captcha->canSkipCaptcha( $user, $services->getMainConfig() );
-			$wasPosted = $request->wasPosted();
+		$captcha = ConfirmEditHooks::getInstance();
+		$pass = $captcha->passCaptchaFromRequest( $request, $user );
+		$canSkip = $captcha->canSkipCaptcha( $user, $services->getMainConfig() );
+		$wasPosted = $request->wasPosted();
 
-			if (
-				/*(
-					$captcha->triggersCaptcha( 'edit' ) ||
-					$captcha->triggersCaptcha( 'create' ) ||
-					$captcha->triggersCaptcha( 'addurl' )
-				) &&*/
-				( !$canSkip && !$pass ) || !$wasPosted
-			) {
-				// Too Many Requests
-				$out->setStatusCode( 429 );
-				$out->setPageTitle( $specialPage->msg( 'error' )->escaped() );
-				if ( $wasPosted && !$pass ) {
-					// Show an error box when the answer to the CAPTCHA was incorrect
-					$out->addHTML( Html::errorBox( $specialPage->msg( 'captcha-edit-fail' )->parse() ) );
-				}
-				$out->addHTML( '<form action="" method="post">' );
-				$out->addHTML( $this->getCAPTCHAForm( $user, $out ) );
-				$out->addHTML( Html::submitButton( $specialPage->msg( 'htmlform-submit' )->text() ) );
-				$out->addHTML( '</form>' );
-				return false;
-			} elseif ( ( $wasPosted && $pass ) || $canSkip ) {
-				// Set a cookie for the specified time (half an hour by default; can be configured by sysadmins
-				// using theconfig variable to be shorter or longer)
-				$request->response()->setCookie(
-					'SpecialPageCaptchaPass',
-					'1',
-					time() + $config->get( 'SpecialPageCaptchaCookieTTL' )
-				);
+		if ( ( !$canSkip && !$pass ) || !$wasPosted ) {
+			$out = $special->getOutput();
+			// Too Many Requests
+			$out->setStatusCode( 429 );
+			$out->setPageTitle( $special->msg( 'error' )->escaped() );
+			if ( $wasPosted && !$pass ) {
+				// Show an error box when the answer to the CAPTCHA was incorrect
+				$out->addHTML( Html::errorBox( $special->msg( 'captcha-edit-fail' )->parse() ) );
 			}
+			$out->addHTML( '<form action="" method="post">' );
+			$out->addHTML( $this->getCAPTCHAForm( $user, $out ) );
+			$out->addHTML( Html::submitButton( $special->msg( 'htmlform-submit' )->text() ) );
+			$out->addHTML( '</form>' );
+			return false;
+		}
+
+		if (
+			/*(
+				$captcha->triggersCaptcha( 'edit' ) ||
+				$captcha->triggersCaptcha( 'create' ) ||
+				$captcha->triggersCaptcha( 'addurl' )
+			) &&*/ $pass || $canSkip
+		) {
+			// Set a cookie for the specified time (half an hour by default; can be configured by sysadmins
+			// using the config variable to be shorter or longer)
+			$request->response()->setCookie(
+				'SpecialPageCaptchaPass',
+				'1',
+				time() + $config->get( 'SpecialPageCaptchaCookieTTL' )
+			);
 		}
 	}
 
