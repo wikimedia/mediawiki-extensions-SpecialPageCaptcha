@@ -40,6 +40,12 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 			return;
 		}
 
+		// If a special page, such as PrefixIndex, is being included on a "regular" page,
+		// do not render a CAPTCHA in that case.
+		if ( $special->including() ) {
+			return;
+		}
+
 		$config = $special->getConfig();
 		$request = $special->getRequest();
 		$services = MediaWikiServices::getInstance();
