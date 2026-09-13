@@ -22,6 +22,10 @@
 		"SpecialPageCaptchaWhitelist": {
 			"description": "A whitelist of special pages which will never show the CAPTCHA. Special:Captcha is provided by the ConfirmEdit extension and it's the help page about CAPTCHAs, whereas the log in/log out pages are provided by MW core and their inclusion here oughta be self-explanatory.",
 			"value": [ "Captcha", "Search", "Userlogin", "Userlogout" ]
+		},
+		"SpecialPageCaptchaLanguageWhitelist": {
+			"description": "One or more language codes such as en or de-DE. Users whose browsers are set to one of these languages will not see a CAPTCHA. Most bots request en, en-US, or no language at all, so if your wiki is in a language other than English and the majority of your users use a non-English browser setting, those users won't have to go through a CAPTCHA but the bots still will.",
+			"value": []
 		}
 	},
 	"MessagesDirs": {

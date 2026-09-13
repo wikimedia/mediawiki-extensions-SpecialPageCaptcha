@@ -66,6 +66,11 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 			return;
 		}
 
+		$langWhitelist = $config->get( 'SpecialPageCaptchaLanguageWhitelist' );
+		if ( $this->isLanguageWhitelisted( $request, $langWhitelist ) )  {
+			return;
+		}
+
 		$captcha = ConfirmEditHooks::getInstance();
 		$pass = $captcha->passCaptchaFromRequest( $request, $user );
 		$canSkip = $captcha->canSkipCaptcha( $user, $services->getMainConfig() );
@@ -140,5 +145,43 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 		}
 
 		return $captchaForm;
+	}
+
+	/**
+	 * Returns true if the Accept-Language request header contains one of the language codes in the whitelist
+	 *
+	 * @param MediaWiki\Request\WebRequest $request
+	 * @param array[string] $whitelist The value of the $wgSpecialPageCaptchaLanguageWhitelist config var
+	 * @return bool
+	 */
+	private function isLanguageWhitelisted( $request, $whitelist ) {
+		$acceptLanguage = $request->getHeader( 'Accept-Language' );
+		wfDebugLog( 'SpecialPageCaptcha', 'Accept-Language = ' . $acceptLanguage );
+
+		if ( $whitelist === null || count( $whitelist ) == 0 ) {
+			wfDebugLog( 'SpecialPageCaptcha', 'No language whitelist defined. Not checking language whitelist.' );
+			return false;
+		}
+
+		if ( $acceptLanguage === null || strlen( $acceptLanguage ) == 0 ) {
+			wfDebugLog( 'SpecialPageCaptcha', 'Accept-Language empty or missing. Not checking language whitelist.' );
+			return false;
+		}
+
+		$browserLanguages = explode( ',', $acceptLanguage, 100 );
+		foreach ( $browserLanguages as $browserLang ) {
+			$browserLang = strtolower( trim( $browserLang ) );
+
+			foreach ( $whitelist as $whitelistedLang ) {
+				$whitelistedLang = strtolower( $whitelistedLang );
+				if ( str_starts_with( $browserLang, $whitelistedLang ) ) {
+					wfDebugLog( 'SpecialPageCaptcha', 'Whitelisted language ' . $whitelistedLang . ' matches requested ' . $browserLang );
+					return true;
+				}
+			}
+		}
+
+		wfDebugLog( 'SpecialPageCaptcha', 'No match between Accept-Language and language whitelist' );
+		return false;
 	}
 }
