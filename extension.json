@@ -1,6 +1,6 @@
 {
 	"name": "SpecialPageCaptcha",
-	"version": "0.3",
+	"version": "0.4",
 	"author": [
 		"Jack Phoenix"
 	],
@@ -15,8 +15,8 @@
 		}
 	},
 	"config": {
-		"SpecialPageCaptchaCookieTTL": {
-			"description": "The time to live (TTL) in seconds for the cookie set by the extension, which allows the user to bypass the CAPTCHA. The default is 1800 (seconds), i.e. 60 seconds * 30 minutes.",
+		"SpecialPageCaptchaTTL": {
+			"description": "The time to live (TTL) in seconds for the session secret key set by the extension, which allows the user to bypass the CAPTCHA. The default is 1800 (seconds), i.e. 60 seconds * 30 minutes.",
 			"value": 1800
 		},
 		"SpecialPageCaptchaWhitelist": {

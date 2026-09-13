@@ -17,6 +17,9 @@ use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\SpecialPage\Hook\SpecialPageBeforeExecuteHook;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\User\User;
+// Not yet namespaced in MW 1.43, it seems:
+// use MediaWiki\Utils\MWCryptRand;
+use MWCryptRand;
 
 class Hooks implements SpecialPageBeforeExecuteHook {
 	/**
@@ -26,8 +29,8 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 	 * @param string $subPage
 	 *
 	 * @return void|bool Boolean false if our code here was triggered, i.e. user is an anon subject to restrictions.
-	 *    void if the cookie is set and the user has passed a CAPTCHA within the past half an hour; or if they
-	 *    passed the CAPTCHA just now and the cookie was set
+	 *    void if the key is set in session and the user has passed a CAPTCHA within the past half an hour; or if they
+	 *    passed the CAPTCHA just now and the key was set
 	 */
 	public function onSpecialPageBeforeExecute( $special, $subPage ) {
 		// If the ConfirmEdit (CAPTCHA) extension isn't installed, bail out.
@@ -49,13 +52,16 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 		$config = $special->getConfig();
 		$request = $special->getRequest();
 		$services = MediaWikiServices::getInstance();
+		$session = $request->getSession();
 
 		// "Fun" fact: apparently you can't inject SpecialPageFactory via DI here (???) *and*
 		// $specialPage->getSpecialPageFactory() is protected :^)
 		$canonicalName = $services->getSpecialPageFactory()->resolveAlias( $special->getName() )[0];
 		$isWhitelisted = in_array( $canonicalName, $config->get( 'SpecialPageCaptchaWhitelist' ) );
+		$key = $session->get( 'wsSpecialPageCaptchaKey' );
+		$storedTTL = $session->get( 'wsSpecialPageCaptchaTTL' );
 
-		if ( $isWhitelisted || $request->getCookie( 'SpecialPageCaptchaPass' ) === '1' ) {
+		if ( $isWhitelisted || ( $key !== null && $storedTTL !== null && $storedTTL > time() ) ) {
 			// You shall pass.
 			return;
 		}
@@ -88,13 +94,13 @@ class Hooks implements SpecialPageBeforeExecuteHook {
 				$captcha->triggersCaptcha( 'addurl' )
 			) &&*/ $pass || $canSkip
 		) {
-			// Set a cookie for the specified time (half an hour by default; can be configured by sysadmins
-			// using the config variable to be shorter or longer)
-			$request->response()->setCookie(
-				'SpecialPageCaptchaPass',
-				'1',
-				time() + $config->get( 'SpecialPageCaptchaCookieTTL' )
-			);
+			if ( $key === null ) {
+				$key = MWCryptRand::generateHex( 32 );
+			}
+			// Store the secret key and its TTL (half an hour by default; can be configured by sysadmins
+			// using the config variable to be shorter or longer) in session
+			$session->set( 'wsSpecialPageCaptchaKey', $key );
+			$session->set( 'wsSpecialPageCaptchaTTL', time() + $config->get( 'SpecialPageCaptchaTTL' ) );
 		}
 	}
 
